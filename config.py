@@ -11,10 +11,14 @@ max_thread = 10
 tables = {
     "stas_date_info": {
         "post_url": "http://192.168.1.92:8004/api/date/",
-        "cmp_field": "CTIME",  # 用于对比的字段
-        "cmp_value_field": "ctime",
+        "get_url": "",
+        "sync_all": False,  # 是否同步全部数据（自动设置）
+        "cmp_field": "CTIME",  # 用于对比的字段名(数据库)
+        "cmp_arg": "ctime",  # 用于对比的参数名(get的数据)
+        "cmp_field_second": "SEQ",  # 如果第一个对比值不唯一，则启用第二对比条件,为空则不启用
+        "cmp_arg_second": "seq",
         "strict": False,  # 严格模式将仅同步map中的字段,默认使用column名作为post参数名
-        "lower": True,  # 将大写转小写,只在非严格模式下有效
+        "lower": True,  # 将column name转小写,只在非严格模式下有效
         "map": {
             # column:post argument
             # "CTIME": "ctime",
