@@ -1,33 +1,60 @@
 import requests
 import socket
-import io
-import time
+import json
 import config
 import log
-import json
+
+
 COUNT = 0
-socket.setdefaulttimeout(config.timeout)
+requests.ConnectTimeout = config.timeout
 
 
-def post(table, data):
+def retry(attempt):
+    def decorator(func):
+        def wrapper(*args, **kw):
+            att = 0
+            while att < attempt:
+                try:
+                    return func(*args, **kw)
+                except Exception as e:
+                    att += 1
+                    if att == attempt:
+                        raise
+                    else:
+                        print("retry")
+        return wrapper
+    return decorator
+
+
+@retry(3)
+def post(url,data):
+    res = requests.post(url, data)
+    return res
+
+
+# batch post_data date to webservice
+def post_data(table, data):
     try:
-        for d in data:
-            print(d)
+        # for d in data:
+            # print(d)
         global COUNT
         url = config.tables[table]['post_url']
+
         for d in data:
             try:
-                res = requests.post(url, d)
+                # res = requests.post(url, d)
+                res = post_data(url, d)
             except Exception as e:
                 log.log_error("server error:" + str(e))
+                continue
             if res.status_code == 201:
                 COUNT += 1
             else:
-                log.log_error("post data failed\ncode:" + res.status_code + "\nresponse:" + res.text + "\npost data:" + d)
+                log.log_error("post_data data failed\ncode:" + res.status_code + "\nresponse:" + res.text + "\npost_data data:" + d)
     except Exception:
         raise
 
-
+# from webservice get last data
 def get_last(table, cmp_arg, cmp_arg_second=""):
     url = config.tables[table]['get_url']
     # data = requests.get(url)

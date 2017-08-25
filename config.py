@@ -8,6 +8,7 @@ db = {
 
 max_thread = 10
 timeout = 5
+retry = 3  # 出错重试次数
 print_log = True
 
 tables = {
@@ -22,7 +23,7 @@ tables = {
         "strict": False,  # 严格模式将仅同步map中的字段,默认使用column名作为post参数名
         "lower": True,  # 将column name转小写,只在非严格模式下有效
         "map": {  # 字段和POST映射关系
-            # column:post argument
+            # column:post_data argument
             # "CTIME": "ctime",
             # "SEQ": "seq",
             # "MTIME": "mtime",

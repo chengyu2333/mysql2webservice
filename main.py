@@ -1,5 +1,3 @@
-import io
-import time
 import database
 import req
 import config
@@ -67,8 +65,8 @@ def process():
                 post_data.append(row_temp)
                 total += 1
             try:
-                # post the post_data
-                req.post(table, post_data)
+                # post_data the post_data
+                req.post_data(table, post_data)
             except Exception as e:
                 log.log_error("unknow error:" + str(e))
 
