@@ -7,6 +7,8 @@ db = {
 }
 
 max_thread = 10
+timeout = 5
+print_log = True
 
 tables = {
     "stas_date_info": {

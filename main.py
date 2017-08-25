@@ -3,16 +3,15 @@ import time
 import database
 import req
 import config
+import log
 db = database.DB()
 
 
 def process():
     total = 0
     for table in config.tables:
-        f = io.open("success.log", 'a')
-        log = "%s ---- %s \r\n" % (time.ctime(), table)
-        print(log)
-        f.write(log)
+        log_msg = "start processing table：" + table
+        log.log_success(log_msg)
 
         sync_all = config.tables[table]['sync_all']
         if sync_all:
@@ -35,13 +34,18 @@ def process():
 
         post_data = []
 
-        # get_last new data from mysql
+        # get last new data from mysql
         while True:
-            data = db.get_next_new_data(table, cmp_field=cmp_field, cmp_value=last_data, num=config.max_thread, cmp_field_second=cmp_field_second, cmp_value_second=last_data_second)
+            try:
+                data = db.get_next_new_data(table, cmp_field=cmp_field, cmp_value=last_data, num=config.max_thread, cmp_field_second=cmp_field_second, cmp_value_second=last_data_second)
+            except Exception as e:
+                log.log_error("get_next_new_data:" + str(e))
+                continue
+
             if not data:
                 break
 
-            # mapping
+            # mapping filed and argument
             table_map = config.tables[table]['map']
             for row in data:
                 row_temp = {}
@@ -62,14 +66,15 @@ def process():
 
                 post_data.append(row_temp)
                 total += 1
-            # post the post_data
-            req.post(table, post_data)
+            try:
+                # post the post_data
+                req.post(table, post_data)
+            except Exception as e:
+                log.log_error("unknow error:" + str(e))
 
         db.reset_current()
-        log = "processed table:%s total:%d success:%s\r\n" % (table, total, req.COUNT)
-        print(log)
-        f.write(log)
-        f.close()
+        log_msg = "processed table:%s finished, total:%d success:%s" % (table, total, req.COUNT)
+        log.log_success(log_msg)
         req.COUNT = 0
 
 process()

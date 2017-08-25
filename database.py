@@ -36,34 +36,39 @@ class DB:
 
     # 获取新数据
     def get_last_data(self, table, cmp_field, cmp_value, cmp_field_second, cmp_value_second):
-        sql = 'SELECT *,count(*) as count FROM %s WHERE %s >= "%s" GROUP BY %s ORDER BY %s DESC limit 1 ' % (table, cmp_field, cmp_value, cmp_field, cmp_field)
-        self.__cursor.execute(sql)
-        data = self.__cursor.fetchone()
-        if data['count'] > 1:
-            # cmp_value_second = data[cmp_field_second]
-            sql = 'SELECT * FROM %s WHERE %s >= "%s" AND %s>=%s' % (table, cmp_field, cmp_value, cmp_field_second, cmp_value_second)
+        try:
+            sql = 'SELECT *,count(*) as count FROM %s WHERE %s >= "%s" GROUP BY %s ORDER BY %s DESC limit 1 ' % (table, cmp_field, cmp_value, cmp_field, cmp_field)
             self.__cursor.execute(sql)
             data = self.__cursor.fetchone()
-            return data
-        else:
-            del data['count']
-            return data
+            if data['count'] > 1:
+                # cmp_value_second = data[cmp_field_second]
+                sql = 'SELECT * FROM %s WHERE %s >= "%s" AND %s>=%s' % (table, cmp_field, cmp_value, cmp_field_second, cmp_value_second)
+                self.__cursor.execute(sql)
+                data = self.__cursor.fetchone()
+                return data
+            else:
+                del data['count']
+        except Exception:
+            raise
 
     # 获取下一批新数据
     def get_next_new_data(self, table, cmp_field="", cmp_value="", cmp_field_second="", cmp_value_second="", num=10):
-        if cmp_field and cmp_value:
-            if cmp_field_second and cmp_value_second:
-                sql = 'SELECT * FROM %s WHERE %s >= %s AND %s>%s ORDER BY %s DESC limit %d,%d'\
-                  % (table, cmp_field, cmp_value, cmp_field_second, cmp_value_second, cmp_field, self.__current, num)
+        try:
+            if cmp_field and cmp_value:
+                if cmp_field_second and cmp_value_second:
+                    sql = 'SELECT * FROM %s WHERE %s >= %s AND %s>%s ORDER BY %s DESC limit %d,%d'\
+                      % (table, cmp_field, cmp_value, cmp_field_second, cmp_value_second, cmp_field, self.__current, num)
+                else:
+                    sql = 'SELECT * FROM %s WHERE %s > %sORDER BY %s DESC limit %d,%d' \
+                          % (table, cmp_field, cmp_value, cmp_field, self.__current, num)
             else:
-                sql = 'SELECT * FROM %s WHERE %s > %sORDER BY %s DESC limit %d,%d' \
-                      % (table, cmp_field, cmp_value, cmp_field, self.__current, num)
-        else:
-            sql = 'SELECT * FROM %s limit %d,%d' % (table, self.__current, num)
-        print("# SQL:", sql)
-        self.__cursor.execute(sql)
-        self.__current += num
-        return self.__cursor.fetchall()
+                sql = 'SELECT * FROM %s limit %d,%d' % (table, self.__current, num)
+            print("# SQL:", sql)
+            self.__cursor.execute(sql)
+            self.__current += num
+            return self.__cursor.fetchall()
+        except Exception:
+            raise
 
     def reset_current(self):
         self.__current = 0

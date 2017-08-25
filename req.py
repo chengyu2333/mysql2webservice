@@ -1,26 +1,31 @@
 import requests
+import socket
 import io
 import time
 import config
+import log
 import json
 COUNT = 0
+socket.setdefaulttimeout(config.timeout)
 
 
 def post(table, data):
-    for d in data:
-        print(d)
-    f = io.open("errors.log", 'a')
-    global COUNT
-    url = config.tables[table]['post_url']
-    for d in data:
-        res = requests.post(url, d)
-        if res.status_code == 201:
-            COUNT += 1
-        else:
-            f.write(time.ctime() + "----" + res.status_code + "\r\n")
-            f.write(res.text + "\r\n")
-            f.write(d + "\r\n")
-    f.close()
+    try:
+        for d in data:
+            print(d)
+        global COUNT
+        url = config.tables[table]['post_url']
+        for d in data:
+            try:
+                res = requests.post(url, d)
+            except Exception as e:
+                log.log_error("server error:" + str(e))
+            if res.status_code == 201:
+                COUNT += 1
+            else:
+                log.log_error("post data failed\ncode:" + res.status_code + "\nresponse:" + res.text + "\npost data:" + d)
+    except Exception:
+        raise
 
 
 def get_last(table, cmp_arg, cmp_arg_second=""):
