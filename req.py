@@ -9,29 +9,6 @@ COUNT = 0
 requests.ConnectTimeout = config.timeout
 
 
-def retry(attempt):
-    def decorator(func):
-        def wrapper(*args, **kw):
-            att = 0
-            while att < attempt:
-                try:
-                    return func(*args, **kw)
-                except Exception as e:
-                    att += 1
-                    if att == attempt:
-                        raise
-                    else:
-                        print("retry")
-        return wrapper
-    return decorator
-
-
-@retry(3)
-def post(url,data):
-    res = requests.post(url, data)
-    return res
-
-
 # batch post_data date to webservice
 def post_data(table, data):
     try:
@@ -42,8 +19,7 @@ def post_data(table, data):
 
         for d in data:
             try:
-                # res = requests.post(url, d)
-                res = post_data(url, d)
+                res = requests.post(url, d)
             except Exception as e:
                 log.log_error("server error:" + str(e))
                 continue
