@@ -19,7 +19,7 @@ tables = {
         "cmp_arg_second": "seq",
         "strict": False,  # 严格模式将仅同步map中的字段,默认使用column名作为post参数名
         "lower": True,  # 将column name转小写,只在非严格模式下有效
-        "map": {
+        "map": {  # 字段和POST映射关系
             # column:post argument
             # "CTIME": "ctime",
             # "SEQ": "seq",
