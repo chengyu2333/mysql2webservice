@@ -6,10 +6,10 @@ db = {
     "port": 3366
 }
 
-max_thread = 10
-timeout = 5
+max_thread = 10  # 最大线程数
+timeout = 5  # post超时时间
 retry = 3  # 出错重试次数
-print_log = True
+print_log = True  # 输出日志到控制台
 
 tables = {
     "stas_date_info": {

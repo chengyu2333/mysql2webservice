@@ -30,6 +30,7 @@ def post_data(table, data):
     except Exception:
         raise
 
+
 # from webservice get last data
 def get_last(table, cmp_arg, cmp_arg_second=""):
     url = config.tables[table]['get_url']
