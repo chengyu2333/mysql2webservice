@@ -56,7 +56,7 @@ class DB:
                 else:
                     sql = 'SELECT * FROM %s WHERE %s > %sORDER BY %s DESC limit %d,%d' \
                           % (table, cmp_field, cmp_value, cmp_field, self.__current, num)
-            else:
+            else:  # fetch all
                 sql = 'SELECT * FROM %s limit %d,%d' % (table, self.__current, num)
             print("# SQL:", sql)
             self.__cursor.execute(sql)

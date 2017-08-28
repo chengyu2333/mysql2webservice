@@ -6,8 +6,10 @@ db = {
     "port": 3366
 }
 
-max_thread = 10  # 最大线程数
-timeout = 5  # post超时时间
+enable_thread = True  # 启用线程
+thread_pool_size = 1  # 线程池大小
+cache_size = 1  # 缓存大小
+timeout = 1  # post超时时间
 retry = 3  # 出错重试次数
 print_log = True  # 输出日志到控制台
 

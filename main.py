@@ -11,31 +11,30 @@ def process():
         log_msg = "start processing table：" + table
         log.log_success(log_msg)
 
-        sync_all = config.tables[table]['sync_all']
-        if sync_all:
-            cmp_field = 0
-            cmp_field_second = 0
-            last_data = 0
-            last_data_second = 0
+        # sync_all = config.tables[table]['sync_all']
+        # if sync_all:
+        #     cmp_field = 0
+        #     cmp_field_second = 0
+        #     last_data = 0
+        #     last_data_second = 0
+        # else:
+        cmp_field = config.tables[table]['cmp_field']
+        cmp_arg = config.tables[table]['cmp_arg']
+        cmp_field_second = config.tables[table]['cmp_field_second']
+        cmp_arg_second = config.tables[table]['cmp_arg_second']
+
+        # get_last webservice last data
+        if cmp_field_second:
+            last_data, last_data_second = req.get_last(table, cmp_arg, cmp_arg_second)
         else:
-            cmp_field = config.tables[table]['cmp_field']
-            cmp_arg = config.tables[table]['cmp_arg']
-            cmp_field_second = config.tables[table]['cmp_field_second']
-            cmp_arg_second = config.tables[table]['cmp_arg_second']
-
-            # get_last webservice last data
-            if cmp_field_second:
-                last_data, last_data_second = req.get_last(table, cmp_arg, cmp_arg_second)
-            else:
-                last_data = req.get_last(table, cmp_arg)
-                last_data_second = ""
-
-        post_data = []
+            last_data = req.get_last(table, cmp_arg)
+            last_data_second = ""
 
         # get last new data from mysql
+        post_data = []
         while True:
             try:
-                data = db.get_next_new_data(table, cmp_field=cmp_field, cmp_value=last_data, num=config.max_thread, cmp_field_second=cmp_field_second, cmp_value_second=last_data_second)
+                data = db.get_next_new_data(table, cmp_field=cmp_field, cmp_value=last_data, num=config.cache_size, cmp_field_second=cmp_field_second, cmp_value_second=last_data_second)
             except Exception as e:
                 log.log_error("get_next_new_data:" + str(e))
                 continue
@@ -64,12 +63,14 @@ def process():
 
                 post_data.append(row_temp)
                 total += 1
+            # req.post_data(table, post_data)
             try:
                 # post_data the post_data
                 req.post_data(table, post_data)
             except Exception as e:
                 log.log_error("unknow error:" + str(e))
-
+            finally:
+                post_data.clear()
         db.reset_current()
         log_msg = "processed table:%s finished, total:%d success:%s" % (table, total, req.COUNT)
         log.log_success(log_msg)
