@@ -1,12 +1,14 @@
 # mysql2webservice
 一个MySQL同步到webService的工具
 ## Feature
+### 多线程，出错重试
 ### 支持增量更新，增量更新需要满足以下条件：
 - 数据库中有递增字段
-- webservice提供获取最新一条数据的接口
+- webservice提供获取最新数据的接口
 ## Tip
-- 执行一次脚本只检测并同步一次，可结合crontab或其他任务调度工具
-- 一般情况下只需要配置一下config.py文件，不需改动代码
+- 默认一直检测运行，可结合crontab或其他任务调度工具
+- 一般情况下只需要修改一下config.py文件和filter文件
+
 ## config.py示例
 ```
 # 数据库配置

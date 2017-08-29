@@ -1,3 +1,7 @@
 import process
 
-process.run()
+
+def run():
+    while True:
+        process.sync()
+run()

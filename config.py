@@ -6,17 +6,25 @@ db = {
     "port": 3366
 }
 
-enable_thread = True  # 启用线程
+enable_thread = False  # 启用线程
 thread_pool_size = 1  # 线程池大小
 cache_size = 1  # 缓存大小
-timeout = 1  # post超时时间
-# 出错重试次数
-retry_post = 3
-retry_mysql = 3
+# 超时时间
+timeout_http = 1
+timeout_db = 1
+# 重试等待时间（弃用）
+slience_db = 5
+slience_http = 5
+# 重试等待时间指数增长时底数
+slience_db_multiplier = 2
+slience_http_multiplier = 2
+# 超时/出错重试次数
+retry_post = 5
+retry_mysql = 5
 print_log = True  # 输出日志到控制台
 
 tables = {
-    "stas_date_info1": {
+    "stas_date_info": {
         "post_url": "http://192.168.1.92:8004/api/date/",
         "get_url": "",
         # 对比标志，必须是递增字段
@@ -43,18 +51,18 @@ tables = {
             "GENIUS_UID": "genius_uid"
         }
     },
-    "stas_achieve_report": {
-        "post_url": "http://192.168.1.92:8004/api/date/",
-        "get_url": "",
-        "cmp_field": "CTIME",
-        "cmp_arg": "ctime",
-        "cmp_field_second": "",
-        "cmp_arg_second": "",
-        "strict": False,
-        "lower": True,
-        "map": {
-            # 如果未启用严格模式，且数据库和post字段完全对应，那么这里不用配置
-        }
-    }
+    # "stas_achieve_report": {
+    #     "post_url": "http://192.168.1.92:8004/api/date/",
+    #     "get_url": "",
+    #     "cmp_field": "CTIME",
+    #     "cmp_arg": "ctime",
+    #     "cmp_field_second": "",
+    #     "cmp_arg_second": "",
+    #     "strict": False,
+    #     "lower": True,
+    #     "map": {
+    #         # 如果未启用严格模式，且数据库和post字段完全对应，那么这里不用配置
+    #     }
+    # }
 }
 
