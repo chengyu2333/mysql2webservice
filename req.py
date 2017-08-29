@@ -9,7 +9,7 @@ import log
 COUNT = 0
 
 
-# batch post_data date to webservice
+# batch post data to webservice
 def post_data(table, data):
     try:
         url = config.tables[table]['post_url']
@@ -33,7 +33,7 @@ def post_data(table, data):
                     if res.status_code == 201:
                         COUNT += 1
                     else:
-                        log.log_error("post_data data failed\ncode:" + res.status_code + "\nresponse:" + res.text +
+                        log.log_error("post data failed\ncode:" + res.status_code + "\nresponse:" + res.text +
                                       "\npost_data data:" + d)
                 except Exception as e:
                     log.log_error("server error:" + str(e))
@@ -42,31 +42,35 @@ def post_data(table, data):
         raise
 
 
-# TODO 抓取完成时的回调
+# post callback
 def finished(*args, **kwargs):
+    global COUNT
     print("finished")
-    print(args[1])
-    # print(res)
-    # if res.status_code == 201:
-    #     COUNT += 1
-    # else:
-    #     log.log_error(
-    #         "post_data data failed\ncode:" + res.status_code + "\nresponse:" + res.text + "\npost_data data:" + d)
+    if args[1]:
+        print(args[1])
+        if args[1].status_code == 201:
+            COUNT += 1
+        else:
+            log.log_error("post data failed\ncode:" + args[1].status_code + "\nresponse:"
+                          + args[1].text + "\npost_data data:" + d)
+    else:
+        pass
 
 
-# no except handle, for implement retrying
+# no exception handle, for implement retrying
 @retry(stop_max_attempt_number=config.retry)
 def post_retry(url, d):
     print("post_retry", url, d['genius_uid'])
     return requests.post(url, d, timeout=config.timeout)
 
 
-# have except handle, for implement multi thread
+# have exception handle, for implement multi thread
 def post_except(url, d):
     print("post_except:", url, d['genius_uid'])
     try:
         return post_retry(url, d)
     except Exception as e:
+        # handle all exception
         log.log_error("server error:" + str(e))
 
 
