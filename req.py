@@ -58,7 +58,7 @@ def finished(*args, **kwargs):
 
 
 # no exception handle, for implement retrying
-@retry(stop_max_attempt_number=config.retry)
+@retry(stop_max_attempt_number=config.retry_post)
 def post_retry(url, d):
     print("post_retry", url, d['genius_uid'])
     return requests.post(url, d, timeout=config.timeout)
@@ -74,7 +74,7 @@ def post_except(url, d):
         log.log_error("server error:" + str(e))
 
 
-# from webservice get last data
+# get last flag from webservice
 def get_last(table, cmp_arg, cmp_arg_second=""):
     url = config.tables[table]['get_url']
     # data = requests.get(url, timeout=config.timeout)
@@ -83,7 +83,7 @@ def get_last(table, cmp_arg, cmp_arg_second=""):
         "id": "599ba72fa54d752382002d82",
         "range": "hahaha",
         "seq": 134587,
-        "ctime": "2017年02月22日 17:40:49",
+        "ctime": "2016年02月22日 17:40:49",
         "mtime": "2017年08月04日 19:05:28",
         "listdate": "2017年08月07日 00:00:00",
         "end_list_date": null,
@@ -106,7 +106,7 @@ def get_last(table, cmp_arg, cmp_arg_second=""):
         "ia_name": null
     }
     '''
-    data = None
+    # data = None
     if data:
         json_data = json.loads(data)
         last_data = json_data[cmp_arg]

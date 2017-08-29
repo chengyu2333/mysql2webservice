@@ -23,7 +23,7 @@ def run():
         cmp_field_second = config.tables[table]['cmp_field_second']
         cmp_arg_second = config.tables[table]['cmp_arg_second']
 
-        # get_last webservice last data
+        # get last data from  webservice
         if cmp_field_second:
             last_data, last_data_second = req.get_last(table, cmp_arg, cmp_arg_second)
         else:
@@ -35,11 +35,9 @@ def run():
         while True:
             try:
                 data = db.get_next_newer_data(table, cmp_field=cmp_field, cmp_value=last_data, num=config.cache_size, cmp_field_second=cmp_field_second, cmp_value_second=last_data_second)
+                if not data: break
             except Exception as e:
                 log.log_error("get_next_newer_data:" + str(e))
-                continue
-
-            if not data:
                 break
 
             # mapping filed and argument

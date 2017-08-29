@@ -1,5 +1,6 @@
 from pymysql import connect
 from pymysql import cursors
+from retrying import retry
 import config
 
 
@@ -46,6 +47,7 @@ class DB:
         except Exception:
             raise
 
+    @retry(stop_max_attempt_number = config.retry_mysql)
     def get_next_newer_data(self, table, cmp_field="", cmp_value="", cmp_field_second="", cmp_value_second="", num=10):
         try:
             if cmp_field and cmp_value:
