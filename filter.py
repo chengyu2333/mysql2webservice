@@ -4,6 +4,8 @@ import datetime
 def datetime_to_str(field):
     if type(field) == datetime.datetime:
         return str(field).replace(" ", "T")
+    else:
+        return field
 
 def convert_arg_datetime(arg):
     arg = arg.replace('年', '-')

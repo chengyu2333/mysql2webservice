@@ -37,7 +37,7 @@ class DB:
         except Exception:
             raise
 
-    @retry(stop_max_attempt_number = config.retry_mysql,
+    @retry(stop_max_attempt_number = config.retry_db,
            stop_max_delay=config.timeout_db*1000,
            wait_exponential_multiplier=config.slience_db_multiplier*1000,
            wait_exponential_max=config.slience_db_multiplier_max * 1000)

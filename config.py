@@ -6,7 +6,7 @@ db = {
     "port": 3366
 }
 
-cycle_time = 10  # 运行周期
+cycle_time = 100  # 运行周期
 enable_thread = False  # 启用线程
 thread_pool_size = 1  # 线程池大小
 cache_size = 1  # 缓存大小
@@ -22,14 +22,15 @@ slience_http_multiplier = 2
 slience_http_multiplier_max = 6
 
 # 超时/出错重试次数
-retry_post = 5
-retry_mysql = 5
+retry_http = 5
+retry_db = 5
 
 print_log = True  # 输出日志到控制台
 
 tables = {
     "stas_date_info": {
-        "post_url": "http://192.168.1.92:8004/api/date/",
+        # "post_url": "http://192.168.1.92:8004/api/date/",
+        "post_url": "http://127.0.0.1",
         "get_url": "",
         # 对比标志，必须是递增字段
         "cmp_field": "CTIME",  # 用于对比的字段名(数据库)
@@ -37,22 +38,22 @@ tables = {
         "cmp_field_second": "SEQ",  # 第二判定条件，为空则不启用
         "cmp_arg_second": "seq",
 
-        "strict": False,  # 严格模式将仅同步配置的map中的字段
+        "strict": True,  # 严格模式将仅同步配置的map中的字段
         "lower": True,  # 将column转小写,只在非严格模式下有效
         # 数据库字段和POST参数映射关系,默认使用column作为post参数
         "map": {
-            # 格式 column:post argument
+            # 格式 source_key:new_key
             "CTIME": "ctime",
-            "SEQ": "seq",
-            "MTIME": "mtime",
-            "STARTDATE": "startdate",
-            "ENDDATE": "enddate",
-            "ISS_ID": "iss_id",
-            "DATE_TYPE_CODE":"date_type_code",
-            "COMCODE":"comcode",
-            "IF_INTERVAL":"if_interval",
-            "ISVALID": "isvalid",
-            "GENIUS_UID": "genius_uid"
+            # "SEQ": "seq",
+            # "MTIME": "mtime",
+            # "STARTDATE": "startdate",
+            # "ENDDATE": "enddate",
+            # "ISS_ID": "iss_id",
+            # "DATE_TYPE_CODE":"date_type_code",
+            # "COMCODE":"comcode",
+            # "IF_INTERVAL":"if_interval",
+            # "ISVALID": "isvalid",
+            # "GENIUS_UID": "genius_uid"
         }
     },
     # "stas_achieve_report": {

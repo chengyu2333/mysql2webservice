@@ -47,25 +47,32 @@ def finished(*args):
 
 
 # no exception handle, for implement retrying
-@retry(stop_max_attempt_number=config.retry_post,
+@retry(stop_max_attempt_number=config.retry_http,
        wait_exponential_multiplier=config.slience_http_multiplier*1000,
        wait_exponential_max=config.slience_http_multiplier_max*1000)
-def post_retry(url, d):
-    print("try ")
-    return requests.post(url, d, timeout=config.timeout_http)
-
+def post_retry(url, data, is_json=True):
+    print("try…… ", end="")
+    try:
+        if is_json:
+            return requests.post(url, json=json.dumps(data), timeout=config.timeout_http)
+        else:
+            return requests.post(url, data=data, timeout=config.timeout_http)
+        print("ok")
+    except Exception as e:
+        print(str(e))
+        raise
 
 # have exception handle, for implement multi thread
-def post_except(url, d):
+def post_except(url, data, is_json=True):
     global SUCCESS_COUNT
     print("post_except:", url)
     try:
-        res = post_retry(url, d)
+        res = post_retry(url, data, is_json)
         if res.status_code == 201:
             SUCCESS_COUNT += 1
         else:
-            log.log_error("post data failed\ncode:" + res.status_code + "\nresponse:" + res.text +
-                          "\npost_data data:" + d)
+            log.log_error("post data failed\ncode:%d\nresponse:%s\npost_data data:%s"
+                          % (res.status_code, res.text, data))
         return res
     except Exception as e:
         log.log_error("server error:" + str(e) + "\ndata:" + str(d))
