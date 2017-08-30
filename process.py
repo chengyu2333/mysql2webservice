@@ -1,5 +1,4 @@
 import database
-import datetime
 import req
 import config
 import log
@@ -7,8 +6,51 @@ import filter
 db = database.DB()
 
 
+# map dict list
+def map_dict(data_source, map_rule, strict=False, lower=True, process_key=None, process_value=None):
+    '''
+    # for example:
+    # data_source:
+        [{'ID': 123, 'USER': 'chengyu'},{'ID': 001, 'USER': 'user'}]
+    # map_rule:
+        {'ID':'uid','USER':'username'}
+    # result:
+        [{'uid': 123, 'username': 'chengyu'},{'ID': 001, 'username': 'user'}]
+    '''
+    total = 0
+    data_result = []
+    for item in data_source:  # iteration data
+        row_temp = {}
+        for key in item:  # iteration filed
+            new_key = None
+            new_value = None
+
+            # costem map value
+            if process_value:
+                item[key] = process_value(item[key])
+
+            # map key
+            if key in map_rule:
+                new_key = map_rule[key]
+            else:  # if haven't mapping relation
+                if not strict:  # non-strict mode
+                    if lower:
+                        new_key = key.lower()
+                    else:
+                        new_key = key
+            # custom map key
+            if process_key:
+                new_key = process_key(new_key)
+
+            row_temp[new_key] = item[key]
+        data_result.append(row_temp)
+        total += 1
+    return data_result, total
+
+# synchronize once
 def sync():
     total = 0
+    # iterate each table
     for table in config.tables:
         log_msg = "start processing table：" + table
         log.log_success(log_msg)
@@ -26,11 +68,14 @@ def sync():
             last_data = req.get_last(table, cmp_arg)
             last_data_second = ""
 
-
-        post_data = []
         while True:
             try:  # get newer data from mysql
-                data = db.get_next_newer_data(table, cmp_field=cmp_field, cmp_value=last_data, num=config.cache_size, cmp_field_second=cmp_field_second, cmp_value_second=last_data_second)
+                data = db.get_next_newer_data(table,
+                                              cmp_field=cmp_field,
+                                              cmp_value=last_data,
+                                              num=config.cache_size,
+                                              cmp_field_second=cmp_field_second,
+                                              cmp_value_second=last_data_second)
                 if not data: break
             except Exception as e:
                 log.log_error("get_next_newer_data:" + str(e))
@@ -38,35 +83,21 @@ def sync():
 
             # mapping filed and argument
             table_map = config.tables[table]['map']
-            for row in data:  # iteration data from db
-                row_temp = {}
-                for column in row:  # iteration filed from db
-                    # convert each field
-                    row[column] = filter.datetime_to_str(row[column])
-
-                    # if have mapping relation
-                    if column in table_map:
-                        col_name = table_map[column]
-                        row_temp[col_name] = row[column]
-                    else:  # if haven't mapping relation
-                        if not config.tables[table]['strict']:  # non-strict mode
-                            if config.tables[table]['lower']:
-                                row_temp[column.lower()] = row[column]
-                            else:
-                                row_temp[column] = row[column]
-                print("·", end="")
-                post_data.append(row_temp)
-                total += 1
-
+            post_data_list,count = map_dict(data,
+                                       table_map, config.
+                                       tables[table]['strict'],
+                                       config.tables[table]['lower'],
+                                       process_value=filter.datetime_to_str,
+                                       process_key=None)
             try:
-                req.post_data(table, post_data)
+                req.post_data(config.tables[table]['post_url'], post_data_list)
             except Exception as e:
                 log.log_error("unknow error:" + str(e))
             finally:
-                post_data.clear()
+                total += count
+                post_data_list.clear()
 
-        db.reset_cursor()
-        log_msg = "processed table:%s finished, total:%d success:%s" % (table, total, req.COUNT)
+        log_msg = "processed table:%s finished, total:%d success:%s" % (table, total, req.SUCCESS_COUNT)
         log.log_success(log_msg)
-        req.COUNT = 0
-
+        req.SUCCESS_COUNT = 0
+        db.reset_cursor()

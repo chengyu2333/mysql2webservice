@@ -6,21 +6,25 @@ db = {
     "port": 3366
 }
 
+cycle_time = 10  # 运行周期
 enable_thread = False  # 启用线程
 thread_pool_size = 1  # 线程池大小
 cache_size = 1  # 缓存大小
+
 # 超时时间
 timeout_http = 1
 timeout_db = 1
-# 重试等待时间（弃用）
-slience_db = 5
-slience_http = 5
-# 重试等待时间指数增长时底数
+
+# 重试等待时间指数增长
 slience_db_multiplier = 2
+slience_db_multiplier_max = 6
 slience_http_multiplier = 2
+slience_http_multiplier_max = 6
+
 # 超时/出错重试次数
 retry_post = 5
 retry_mysql = 5
+
 print_log = True  # 输出日志到控制台
 
 tables = {

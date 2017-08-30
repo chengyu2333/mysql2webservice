@@ -6,20 +6,18 @@ import config
 import log
 import filter
 
-COUNT = 0
+SUCCESS_COUNT = 0
 
 
 # batch post data to webservice
-def post_data(table, data):
+def post_data(url, data_list):
     try:
-        url = config.tables[table]['post_url']
-        global COUNT
-        # for d in data:
+        # for d in data_list:
         #     print(d)
 
         if config.enable_thread:  # multi thread
             args = []
-            for d in data:
+            for d in data_list:
                 args.append(([url, d], None))
             pool = threadpool.ThreadPool(config.thread_pool_size)
             reqs = threadpool.makeRequests(post_except, args, finished)
@@ -27,56 +25,50 @@ def post_data(table, data):
             pool.wait()
             args.clear()
         else:  # single thread
-            for d in data:
-                try:
-                    res = post_retry(url, d)
-                    if res.status_code == 201:
-                        COUNT += 1
-                    else:
-                        log.log_error("post data failed\ncode:" + res.status_code + "\nresponse:" + res.text +
-                                      "\npost_data data:" + d)
-                except Exception as e:
-                    log.log_error("server error:" + str(e))
-                    continue
+            for d in data_list:
+                res = post_except(url, d)
     except Exception:
         raise
 
 
-# post callback
-def finished(*args, **kwargs):
-    global COUNT
+# post success callback
+def finished(*args):
+    global SUCCESS_COUNT
     print("finished  ",args)
     if args[1]:
         print(args[1])
         if args[1].status_code == 201:
-            COUNT += 1
+            SUCCESS_COUNT += 1
         else:
-            log.log_error("post data failed\ncode:" + args[1].status_code + "\nresponse:"
-                          + args[1].text + "\npost_data data:" + args[0])
+            log.log_error("post data failed\ncode:%d\nresponse:%s\npost_data data:%s"
+                          % (args[1].status_code,args[1].text,args[0]))
     else:
         pass
 
 
 # no exception handle, for implement retrying
-@retry(stop_max_attempt_number=config.retry_post,wait_exponential_multiplier=config.slience_http_multiplier*1000)
+@retry(stop_max_attempt_number=config.retry_post,
+       wait_exponential_multiplier=config.slience_http_multiplier*1000,
+       wait_exponential_max=config.slience_http_multiplier_max*1000)
 def post_retry(url, d):
-    print("post_retry", url, d['genius_uid'])
-    print(d)
-
-    try:
-        return requests.post(url, d, timeout=config.timeout_http)
-    except Exception:
-        raise
+    print("try ")
+    return requests.post(url, d, timeout=config.timeout_http)
 
 
 # have exception handle, for implement multi thread
 def post_except(url, d):
-    print("post_except:", url, d['genius_uid'])
+    global SUCCESS_COUNT
+    print("post_except:", url)
     try:
-        return post_retry(url, d)
+        res = post_retry(url, d)
+        if res.status_code == 201:
+            SUCCESS_COUNT += 1
+        else:
+            log.log_error("post data failed\ncode:" + res.status_code + "\nresponse:" + res.text +
+                          "\npost_data data:" + d)
+        return res
     except Exception as e:
-        # handle all exception
-        log.log_error("server error:" + str(e))
+        log.log_error("server error:" + str(e) + "\ndata:" + str(d))
 
 
 # get last flag from webservice
