@@ -1,9 +1,11 @@
 import time
 import config
 import process
+import database
 
 
 def run():
+    database.DB().create_trigger_all()
     while True:
         start_time = time.time()
 

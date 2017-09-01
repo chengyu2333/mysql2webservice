@@ -75,6 +75,19 @@ tables = {
         "cmp_arg": "ctime",
         "cmp_field_second": "",
         "cmp_arg_second": "",
+
+        # 要记录的字段，用于标识唯一记录,为空则使用全部字段
+        "unique_field": [
+            # "CTIME",
+            # "SEQ"
+        ],
+
+        # 通过mysql触发器精准同步数据
+        "trigger": {
+            "event_type": ("insert", "update", "delete")
+        },
+
+
         "strict": False,
         "lower": True,
         "map": {

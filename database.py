@@ -2,6 +2,7 @@ from pymysql import connect
 from pymysql import cursors
 from retry import retry
 import config
+import log
 
 
 class DB:
@@ -91,20 +92,40 @@ class DB:
                    table_name=table_name,
                    detail=self.create_deatil(table_name,event_type, unique_field)
                    )
-        # print(sql)
-        re = self.__db_cursor.execute(sql)
-        return self.__db_cursor.DatabaseError()
+        try:
+            self.__db_cursor.execute(sql)
+        except Exception as e:
+            log.log_error(str(e))
+        # return self.__db_cursor.DatabaseError()
 
     def create_trigger_all(self):
+        sql = '''
+            CREATE TABLE if NOT EXISTS trigger_log(
+            id int PRIMARY KEY auto_increment,
+            table_name varchar(64),
+            op varchar(8),
+            detail varchar(1024)
+            );'''
+        try:
+            self.__db_cursor.execute(sql)
+        except Exception as e:
+            log.log_error(str(e))
+
         for table in config.tables:
-            print("create trigger for table: " + table)
+            conf_table = config.tables[table]
             unique_field = None
-            if 'unique_field' in config.tables[table] or not config.tables[table]:
-                unique_field = config.tables[table]['unique_field']
+            event_type = conf_table['trigger']['event_type'] if 'trigger' in conf_table else None
+            if not event_type:
+                event_type = ("insert", "update", "delete")
+
+            if 'unique_field' in conf_table or not conf_table:
+                unique_field = conf_table['unique_field']
             fields = unique_field if unique_field else self.get_fields(table)
+
             print("field: ", fields)
-            re = self.create_trigger(table,"update", fields)
-            print(str(re))
+            for e in event_type:
+                log.log_success("create trigger for table: " + table + " event:" + e)
+                self.create_trigger(table,e, fields)
 
     # get trigger log
     def get_trigger_log(self,table_name,operation=(),num=10,pop=True):
@@ -113,7 +134,7 @@ class DB:
                   % (table_name, str(operation), num)
         else:
             sql = "select * from trigger_log where table_name='%s' limit %d" % (table_name, num)
-        print(sql)
+        print("# SQL:", sql)
         self.__db_cursor.execute(sql)
         res = self.__db_cursor.fetchall()
         if res:
@@ -124,8 +145,3 @@ class DB:
             return res
         else:
             return None
-
-
-# DB().create_trigger_all()
-# re = DB().get_trigger_log("stas_date_info",("update","insert"),10,False)
-# print(re)
