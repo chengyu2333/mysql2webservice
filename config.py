@@ -31,6 +31,7 @@ tables = {
     "stas_date_info": {
         # "post_url": "http://192.168.1.92:8004/api/date/",
         "post_url": "http://127.0.0.1",
+
         "get_url": "",
         # 对比标志，必须是递增字段
         "cmp_field": "CTIME",  # 用于对比的字段名(数据库)
@@ -38,7 +39,18 @@ tables = {
         "cmp_field_second": "SEQ",  # 第二判定条件，为空则不启用
         "cmp_arg_second": "seq",
 
-        "strict": True,  # 严格模式将仅同步配置的map中的字段
+        # 要记录的字段，用于标识唯一记录,为空则使用全部字段
+        "unique_field": [
+            # "CTIME",
+            # "SEQ"
+        ],
+
+        # 通过mysql触发器精准同步数据
+        "trigger": {
+            "event_type": ("insert","update","delete")
+        },
+
+        "strict": False,  # 严格模式将仅同步配置的map中的字段
         "lower": True,  # 将column转小写,只在非严格模式下有效
         # 数据库字段和POST参数映射关系,默认使用column作为post参数
         "map": {
@@ -56,18 +68,18 @@ tables = {
             # "GENIUS_UID": "genius_uid"
         }
     },
-    # "stas_achieve_report": {
-    #     "post_url": "http://192.168.1.92:8004/api/date/",
-    #     "get_url": "",
-    #     "cmp_field": "CTIME",
-    #     "cmp_arg": "ctime",
-    #     "cmp_field_second": "",
-    #     "cmp_arg_second": "",
-    #     "strict": False,
-    #     "lower": True,
-    #     "map": {
-    #         # 如果未启用严格模式，且数据库和post字段完全对应，那么这里不用配置
-    #     }
-    # }
+    "stas_achieve_report": {
+        "post_url": "http://192.168.1.92:8004/api/date/",
+        "get_url": "",
+        "cmp_field": "CTIME",
+        "cmp_arg": "ctime",
+        "cmp_field_second": "",
+        "cmp_arg_second": "",
+        "strict": False,
+        "lower": True,
+        "map": {
+            # 如果未启用严格模式，且数据库和post字段完全对应，那么这里不用配置
+        }
+    }
 }
 

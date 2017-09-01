@@ -1,3 +1,4 @@
+import json
 import database
 import req
 import config
@@ -8,25 +9,28 @@ db = database.DB()
 
 
 # synchronize once
-def sync():
+def sync_api():
     total = 0
     # iterate each table
     for table in config.tables:
         log_msg = "start processing table：" + table
         log.log_success(log_msg)
+        conf_table = config.tables[table]
 
         # get compare flag
-        cmp_field = config.tables[table]['cmp_field']
-        cmp_arg = config.tables[table]['cmp_arg']
-        cmp_field_second = config.tables[table]['cmp_field_second']
-        cmp_arg_second = config.tables[table]['cmp_arg_second']
+        cmp_field = conf_table['cmp_field'] if 'cmp_field' in conf_table else None
+        cmp_arg = conf_table['cmp_arg'] if 'cmp_arg' in conf_table else None
+        cmp_field_second = conf_table['cmp_field_second'] if 'cmp_field_second' in conf_table else None
+        cmp_arg_second = conf_table['cmp_arg_second'] if 'cmp_arg_second' in conf_table else None
 
         # get last data from  webservice
         if cmp_field_second:
             last_data, last_data_second = req.get_last(table, cmp_arg, cmp_arg_second)
-        else:
+        elif cmp_field:
             last_data = req.get_last(table, cmp_arg)
-            last_data_second = ""
+            last_data_second = None
+        else:
+            last_data_second, last_data = None, None
 
         while True:
             try:  # get newer data from mysql
@@ -42,15 +46,60 @@ def sync():
                 break
 
             # mapping filed and argument
-            table_map = config.tables[table]['map']
+            table_map = conf_table['map']
             post_data_list,count = map_dict(data,
-                                       table_map, config.
-                                       tables[table]['strict'],
-                                       config.tables[table]['lower'],
-                                       process_value=filter.datetime_to_str,
-                                       process_key=None)
+                                            table_map,
+                                            conf_table['strict'],
+                                            conf_table['lower'],
+                                            process_value=filter.time_rfc3339,
+                                            process_key=None)
             try:
-                req.post_data(config.tables[table]['post_url'], post_data_list)
+                req.post_data(conf_table['post_url'], post_data_list)
+            except Exception as e:
+                log.log_error("unknow error:" + str(e))
+            finally:
+                total += count
+                post_data_list.clear()
+
+        log_msg = "processed table:%s finished, total:%d success:%s" % (table, total, req.SUCCESS_COUNT)
+        log.log_success(log_msg)
+        req.SUCCESS_COUNT = 0
+        db.reset_cursor()
+
+
+def sync_trigger():
+    total = 0
+    # iterate each table
+    for table in config.tables:
+        log_msg = "start processing table：" + table
+        log.log_success(log_msg)
+        conf_table = config.tables[table]
+        sync_all = conf_table['sync_all'] if 'sync_all' in conf_table else False
+
+        while True:
+            try:  # get newer data from mysql
+                data = db.get_trigger_log(table,("insert","update","delete"),config.cache_size,False)
+                if not data: break
+            except Exception as e:
+                log.log_error("get_next_newer_data:" + str(e))
+                break
+            post_data_list = []
+            for row in data:
+                new_row = row['detail'][:-2] + "}"
+                new_row = json.loads(new_row)
+                post_data_list.append(new_row)
+
+            # mapping filed and argument
+            table_map = conf_table['map']
+            post_data_list, count = map_dict(post_data_list,
+                                            table_map,
+                                            conf_table['strict'],
+                                            conf_table['lower'],
+                                            process_value=filter.time_rfc3339,
+                                            process_key=None)
+            print(post_data_list)
+            try:
+                req.post_data(conf_table['post_url'], post_data_list)
             except Exception as e:
                 log.log_error("unknow error:" + str(e))
             finally:

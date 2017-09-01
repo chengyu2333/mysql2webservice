@@ -57,7 +57,6 @@ def post_retry(url, data, is_json=True):
             return requests.post(url, json=json.dumps(data), timeout=config.timeout_http)
         else:
             return requests.post(url, data=data, timeout=config.timeout_http)
-        print("ok")
     except Exception as e:
         print(str(e))
         raise
@@ -72,7 +71,7 @@ def post_except(url, data, is_json=True):
             SUCCESS_COUNT += 1
         else:
             log.log_error("post data failed\ncode:%d\nresponse:%s\npost_data data:%s"
-                          % (res.status_code, res.text, data))
+                          % (res.status_code, "", data))
         return res
     except Exception as e:
         log.log_error("server error:" + str(e) + "\ndata:" + str(d))
