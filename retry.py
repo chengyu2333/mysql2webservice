@@ -5,7 +5,6 @@ import time
 import traceback
 
 
-# sys.maxint / 2, since Python 3.2 doesn't have a sys.maxint...
 MAX_WAIT = 1073741823
 
 
@@ -61,8 +60,6 @@ class Retrying(object):
         self._wait_exponential_max = MAX_WAIT if wait_exponential_max is None else wait_exponential_max
         self._wait_jitter_max = 0 if wait_jitter_max is None else wait_jitter_max
 
-        # TODO add chaining of stop behaviors
-        # stop behavior
         stop_funcs = []
         if stop_max_attempt_number is not None:
             stop_funcs.append(self.stop_after_attempt)
@@ -79,8 +76,6 @@ class Retrying(object):
         else:
             self.stop = getattr(self, stop)
 
-        # TODO add chaining of wait behaviors
-        # wait behavior
         wait_funcs = [lambda *args, **kwargs: 0]
         if wait_fixed is not None:
             wait_funcs.append(self.fixed_sleep)
@@ -103,14 +98,11 @@ class Retrying(object):
         else:
             self.wait = getattr(self, wait)
 
-        # retry on exception filter
         if retry_on_exception is None:
             self._retry_on_exception = self.always_reject
         else:
             self._retry_on_exception = retry_on_exception
 
-        # TODO simplify retrying by Exception types
-        # retry on result filter
         if retry_on_result is None:
             self._retry_on_result = self.never_reject
         else:
@@ -139,10 +131,6 @@ class Retrying(object):
         return random.randint(self._wait_random_min, self._wait_random_max)
 
     def incrementing_sleep(self, previous_attempt_number, delay_since_first_attempt_ms):
-        """
-        Sleep an incremental amount of time after each attempt, starting at
-        wait_incrementing_start and incrementing by wait_incrementing_increment
-        """
         result = self._wait_incrementing_start + (self._wait_incrementing_increment * (previous_attempt_number - 1))
         if result < 0:
             result = 0
@@ -203,11 +191,6 @@ class Retrying(object):
 
 
 class Attempt(object):
-    """
-    An Attempt encapsulates a call to a target function that may end as a
-    normal return value from the function or an Exception depending on what
-    occurred during the execution.
-    """
 
     def __init__(self, value, attempt_number, has_exception):
         self.value = value
@@ -215,11 +198,7 @@ class Attempt(object):
         self.has_exception = has_exception
 
     def get(self, wrap_exception=False):
-        """
-        Return the return value of this Attempt instance or raise an Exception.
-        If wrap_exception is true, this Attempt is wrapped inside of a
-        RetryError before being raised.
-        """
+
         if self.has_exception:
             if wrap_exception:
                 raise RetryError(self)

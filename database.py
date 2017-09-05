@@ -100,7 +100,8 @@ class DB:
 
     def create_trigger_all(self):
         sql = '''
-            CREATE TABLE if NOT EXISTS trigger_log(
+            DROP TABLE trigger_log;
+            CREATE TABLE trigger_log(
             id int PRIMARY KEY auto_increment,
             table_name varchar(64),
             op varchar(8),
@@ -128,6 +129,10 @@ class DB:
                 self.create_trigger(table,e, fields)
 
     # get trigger log
+    @retry(stop_max_attempt_number=config.retry_db,
+           stop_max_delay=config.timeout_db * 1000,
+           wait_exponential_multiplier=config.slience_db_multiplier * 1000,
+           wait_exponential_max=config.slience_db_multiplier_max * 1000)
     def get_trigger_log(self,table_name,operation=(),num=10,pop=True):
         if operation:
             sql = "select * from trigger_log where table_name='%s' and op in %s limit %d" \

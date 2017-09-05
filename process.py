@@ -78,13 +78,14 @@ def sync_trigger():
 
         while True:
             try:  # get newer data from mysql
-                data = db.get_trigger_log(table,("insert","update","delete"),config.cache_size,False)
+                data = db.get_trigger_log(table,("insert","update","delete"),config.cache_size)
                 if not data: break
             except Exception as e:
-                log.log_error("get_next_newer_data:" + str(e))
+                log.log_error("get_trigger_log:" + str(e))
                 break
             post_data_list = []
             for row in data:
+                print(row)
                 new_row = row['detail'][:-2] + "}"
                 new_row = json.loads(new_row)
                 post_data_list.append(new_row)

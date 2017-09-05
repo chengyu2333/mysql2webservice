@@ -5,7 +5,7 @@ import database
 
 
 def run():
-    database.DB().create_trigger_all()
+    # database.DB().create_trigger_all()
     while True:
         start_time = time.time()
 

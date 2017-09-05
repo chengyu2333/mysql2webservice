@@ -6,7 +6,7 @@ db = {
     "port": 3366
 }
 
-cycle_time = 100  # 运行周期
+cycle_time = 10  # 运行周期
 enable_thread = False  # 启用线程
 thread_pool_size = 1  # 线程池大小
 cache_size = 1  # 缓存大小
