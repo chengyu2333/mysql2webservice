@@ -9,8 +9,8 @@ def run():
     while True:
         start_time = time.time()
 
-        # process.sync_api()
-        process.sync_trigger()
+        process.sync_api()
+        # process.sync_trigger()
 
         # 保证固定周期时间
         end_time = time.time()

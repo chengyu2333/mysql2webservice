@@ -50,9 +50,7 @@ def sync_api():
             post_data_list,count = map_dict(data,
                                             table_map,
                                             conf_table['strict'],
-                                            conf_table['lower'],
-                                            process_value=filter.time_rfc3339,
-                                            process_key=None)
+                                            conf_table['lower'])
             try:
                 req.post_data(conf_table['post_url'], post_data_list)
             except Exception as e:
@@ -93,11 +91,11 @@ def sync_trigger():
             # mapping filed and argument
             table_map = conf_table['map']
             post_data_list, count = map_dict(post_data_list,
-                                            table_map,
-                                            conf_table['strict'],
-                                            conf_table['lower'],
-                                            process_value=filter.time_rfc3339,
-                                            process_key=None)
+                                             table_map,
+                                             conf_table['strict'],
+                                             conf_table['lower'],
+                                             process_post_keys=filter.time_rfc3339,
+                                             process_db_keys=None)
             print(post_data_list)
             try:
                 req.post_data(conf_table['post_url'], post_data_list)

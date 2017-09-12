@@ -7,16 +7,21 @@ import log
 
 class DB:
     __db_cursor = None
+    __conn = None
     __sql_cursor = 0
 
     def __init__(self):
-        conn = connect(config.db['host'],
+        self.__conn = connect(config.db['host'],
                        config.db['user'],
                        config.db['password'],
                        config.db['db_name'],
                        config.db["port"],
                        cursorclass=cursors.DictCursor)
-        self.__db_cursor = conn.cursor()
+        self.__db_cursor = self.__conn.cursor()
+
+    def close(self):
+        self.__db_cursor.close()
+        self.__conn.close()
 
     def reset_cursor(self):
         self.__sql_cursor = 0
@@ -36,10 +41,11 @@ class DB:
                 data = self.__db_cursor.fetchone()
             else:
                 del data['count']
-
             return data
         except Exception:
             raise
+        finally:
+            self.close()
 
     @retry(stop_max_attempt_number = config.retry_db,
            stop_max_delay=config.timeout_db*1000,
@@ -60,6 +66,7 @@ class DB:
         print("# SQL:", sql)
         self.__db_cursor.execute(sql)
         self.__sql_cursor += num
+        self.close()
         return self.__db_cursor.fetchall()
 
     def get_fields(self,table_name):
@@ -78,7 +85,6 @@ class DB:
         return "".join(strs)
 
     def create_trigger(self,table_name, event_type, unique_field):
-
         sql = '''
             DROP TRIGGER if EXISTS t_{event_type}_{table_name};
             CREATE TRIGGER t_{event_type}_{table_name}
@@ -105,7 +111,7 @@ class DB:
             id int PRIMARY KEY auto_increment,
             table_name varchar(64),
             op varchar(8),
-            detail varchar(1024)
+            detail text
             );'''
         try:
             self.__db_cursor.execute(sql)
@@ -119,14 +125,15 @@ class DB:
             if not event_type:
                 event_type = ("insert", "update", "delete")
 
-            if 'unique_field' in conf_table or not conf_table:
-                unique_field = conf_table['unique_field']
+            if 'unique_field' in conf_table['trigger'] or not conf_table['trigger']['unique_field']:
+                unique_field = conf_table['trigger']['unique_field']
             fields = unique_field if unique_field else self.get_fields(table)
 
             print("field: ", fields)
             for e in event_type:
                 log.log_success("create trigger for table: " + table + " event:" + e)
                 self.create_trigger(table,e, fields)
+        self.close()
 
     # get trigger log
     @retry(stop_max_attempt_number=config.retry_db,

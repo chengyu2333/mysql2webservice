@@ -64,7 +64,7 @@ def post_retry(url, data, is_json=True):
 # have exception handle, for implement multi thread
 def post_except(url, data, is_json=True):
     global SUCCESS_COUNT
-    print("post_except:", url)
+    print("post_except:", url, " ", )
     try:
         res = post_retry(url, data, is_json)
         if res.status_code == 201:
@@ -125,3 +125,14 @@ def get_last(table, cmp_arg, cmp_arg_second=""):
             return last_data
     else:
         return None, None
+
+
+def get_option(table):
+    url = config.tables[table]['get_url']
+    data = requests.options(url).text
+    data = json.loads(data)['actions']['POST']
+    # return data
+    for i in data:
+        print(data[i])
+
+# get_option("stas_date_info")
