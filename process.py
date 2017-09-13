@@ -4,9 +4,9 @@ import req
 import config
 import log
 import filter
+import util
 from map_dict import map_dict
 db = database.DB()
-
 
 # synchronize once
 def sync_api():

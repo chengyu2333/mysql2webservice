@@ -3,6 +3,7 @@ from pymysql import cursors
 from retry import retry
 import config
 import log
+import filter
 
 
 class DB:
@@ -52,6 +53,11 @@ class DB:
            wait_exponential_multiplier=config.slience_db_multiplier*1000,
            wait_exponential_max=config.slience_db_multiplier_max * 1000)
     def get_next_newer_data(self, table, cmp_field="", cmp_value="", cmp_field_second="", cmp_value_second="", num=10):
+
+        if not filter.is_number(cmp_value):cmp_value = "\"" + cmp_value + "\""
+        if not filter.is_number(cmp_value_second): cmp_value_ = "\"" + cmp_value_second + "\""
+
+
         if cmp_field and cmp_value:
             if cmp_field_second and cmp_value_second:
                 # double field compare
@@ -69,12 +75,14 @@ class DB:
         self.close()
         return self.__db_cursor.fetchall()
 
+    # get table fields
     def get_fields(self,table_name):
         self.__db_cursor.execute("select * from "+table_name+" limit 1")
         fields = self.__db_cursor.fetchone()
         # return ['SEQ','CTIME']
         return [key for key in fields]
 
+    #  create trigger_log detail
     def create_deatil(self,table_name,event_type,unique_field):
         old_new = "new" if event_type == "insert" else "old"
         strs = []
@@ -84,6 +92,7 @@ class DB:
         strs.append("}")
         return "".join(strs)
 
+    # create trigger for a table
     def create_trigger(self,table_name, event_type, unique_field):
         sql = '''
             DROP TRIGGER if EXISTS t_{event_type}_{table_name};

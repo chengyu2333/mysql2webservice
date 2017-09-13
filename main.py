@@ -1,11 +1,12 @@
 import time
 import config
 import process
-import database
+import util
 
 
 def run():
     # database.DB().create_trigger_all()
+    util.check_config_map_all()
     while True:
         start_time = time.time()
 

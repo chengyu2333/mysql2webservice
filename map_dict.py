@@ -28,9 +28,9 @@ def map_dict(data_source, map_rule, strict=False, lower=True):
                     new_key = map_rule[old_key]['key']
                 else:
                     if not strict: new_key = old_key
-                if "convert" in map_rule[old_key]:
-                    op = map_rule[old_key]['convert']
-                    new_value = convert(data_item[old_key],op)
+                if "apply" in map_rule[old_key]:
+                    op = map_rule[old_key]['apply']
+                    new_value = map_apply(data_item[old_key], op)
             else:  # if haven't mapping relation
                 if not strict: new_key = old_key
 
@@ -44,14 +44,18 @@ def map_dict(data_source, map_rule, strict=False, lower=True):
         total += 1
     return data_result, total
 
-def convert(obj,op):
+def map_apply(obj, op):
     if str(type(op)) == "<class 'function'>":
         return op(obj)
-    if str(type(op)) == "<class 'str'>":
-        if op=="dt_rfc3339":
-            return str(obj).replace(" ", "T")
-        if op=="none2space":
-            if str(type(obj))=="<class 'NoneType'>":
-                return ""
     if op==str or op==int or op==float:
         return op(obj)
+    if type(op) == str:
+        if op=="dt_rfc3339":
+            return str(obj).replace(" ", "T")
+        if op=="none2blank":
+            if str(type(obj))=="<class 'NoneType'>":
+                return ""
+        if op=="dt_ch2":
+            pass
+    raise Exception("没有这种操作")
+

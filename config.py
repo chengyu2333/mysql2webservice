@@ -26,20 +26,18 @@ retry_http = 5
 retry_db = 5
 
 print_log = True  # 输出日志到控制台
+post_as_json = False
 
 tables = {
     "stas_date_info": {
         # "post_url": "http://192.168.1.92:8004/api/date/",
         "post_url": "http://127.0.0.1",
-
         "get_url": "http://api.chinaipo.com/zh-hans/api/article/?format=json",
         # 对比标志，必须是递增字段
         "cmp_field": "CTIME",  # 用于对比的字段名(数据库)
         "cmp_arg": "ctime",  # 用于对比的参数名(get的数据)
         "cmp_field_second": "SEQ",  # 第二判定条件，为空则不启用
         "cmp_arg_second": "seq",
-
-
 
         # 通过mysql触发器精准同步数据
         "trigger": {
@@ -56,8 +54,8 @@ tables = {
         "map": {
             # 格式 db_key:{post_key,post_type,value_filter}
             "SEQ": "seq1",
-            "CTIME": {"convert":"dt_rfc3339"},
-            "MTIME": {"convert":lambda x:str(x)},
+            "CTIME": {"apply":"dt_rfc3339"},
+            "MTIME": {"apply":lambda x:str(x)},
             "ISVALID": {"key":"is_valid","convert":int},
 
             # "STARTDATE": "startdate",
@@ -94,4 +92,5 @@ tables = {
     #     }
     # }
 }
+
 
