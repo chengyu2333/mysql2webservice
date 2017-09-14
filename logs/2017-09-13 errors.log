@@ -20,3 +20,7 @@ Wed Sep 13 17:43:06 2017 | 	post data failed
 code:200
 response:
 post_data data:{'is_valid': Decimal('1'), 'comcode': 210580499, 'seq1': 134588, 'ctime': '2017-02-22T17:40:49', 'iss_id': 6984, 'mtime': '2017-02-22 17:21:47', 'date_type_code': 234, 'if_interval': 2, 'startdate': datetime.datetime(2017, 2, 27, 0, 0), 'genius_uid': 11714576184, 'enddate': None}
+Wed Sep 13 17:47:29 2017 | 	post data failed
+code:200
+response:
+post_data data:{'enddate': None, 'startdate': datetime.datetime(2017, 2, 27, 0, 0), 'date_type_code': 234, 'iss_id': 6984, 'seq1': 134588, 'comcode': 210580499, 'is_valid': Decimal('1'), 'if_interval': 2, 'ctime': '2017-02-22T17:40:49', 'mtime': '2017-02-22 17:21:47', 'genius_uid': 11714576184}

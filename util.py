@@ -4,6 +4,7 @@ import config
 
 db = DB()
 
+
 def check_config_map(table_name):
     strict = config.tables[table_name]['strict']
     lower = config.tables[table_name]['lower']

@@ -39,7 +39,7 @@ def map_dict(data_source, map_rule, strict=False, lower=True):
                 if map_rule:
                     row_temp[new_key] = new_value
 
-            print(new_key, "|",row_temp[new_key], "|", type(row_temp[new_key]))
+            print( "|" ,type(row_temp[new_key]), "|" ,new_key, "|",row_temp[new_key], "|")
         data_result.append(row_temp)
         total += 1
     return data_result, total

@@ -59,9 +59,9 @@ def sync_api():
                 total += count
                 post_data_list.clear()
 
-        log_msg = "processed table:%s finished, total:%d success:%s" % (table, total, req.SUCCESS_COUNT)
+        log_msg = "processed table:%s finished_cb, total:%d success:%s" % (table, total, req.success_count)
         log.log_success(log_msg)
-        req.SUCCESS_COUNT = 0
+        req.success_count = 0
         db.reset_cursor()
 
 
@@ -105,7 +105,7 @@ def sync_trigger():
                 total += count
                 post_data_list.clear()
 
-        log_msg = "processed table:%s finished, total:%d success:%s" % (table, total, req.SUCCESS_COUNT)
+        log_msg = "processed table:%s finished_cb, total:%d success:%s" % (table, total, req.success_count)
         log.log_success(log_msg)
-        req.SUCCESS_COUNT = 0
+        req.success_count = 0
         db.reset_cursor()
