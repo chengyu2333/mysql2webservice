@@ -7,46 +7,56 @@ import filter
 
 
 class DB:
-    __db_cursor = None
-    __conn = None
-    __sql_cursor = 0
+    _db_cursor = None
+    _conn = None
+    _sql_cursor = 0
 
-    def __init__(self):
-        self.__conn = connect(config.db['host'],
-                       config.db['user'],
-                       config.db['password'],
-                       config.db['db_name'],
-                       config.db["port"],
-                       cursorclass=cursors.DictCursor)
-        self.__db_cursor = self.__conn.cursor()
+    def __init__(self, host, port=27017, user="", password="", db_name=""):
+        self._host = host
+        self._port = port
+        self._user = user
+        self._password = password
+        self._db_name = db_name
+        self.connect(self._db_name)
+
+    def connect(self, db_name):
+        self._db_name = db_name if db_name else ""
+        if self._db_name:
+            self._conn = connect(self._host,
+                                 self._user,
+                                 self._password,
+                                 db_name,
+                                 self._port,
+                                 cursorclass=cursors.DictCursor)
+            self._db_cursor = self._conn.cursor()
+        else:
+            raise Exception("no database selected")
 
     def close(self):
-        self.__db_cursor.close()
-        self.__conn.close()
+        self._db_cursor.close()
+        self._conn.close()
 
     def reset_cursor(self):
-        self.__sql_cursor = 0
+        self._sql_cursor = 0
 
     def get_last_data(self, table, cmp_field, cmp_value, cmp_field_second, cmp_value_second):
         try:
             sql = 'SELECT *,count(*) as count FROM %s WHERE %s >= "%s" GROUP BY %s ORDER BY %s DESC limit 1 ' \
                   % (table, cmp_field, cmp_value, cmp_field, cmp_field)
-            self.__db_cursor.execute(sql)
-            data = self.__db_cursor.fetchone()
+            self._db_cursor.execute(sql)
+            data = self._db_cursor.fetchone()
 
             if data['count'] > 1:
                 # get last data by double field compare
                 sql = 'SELECT * FROM %s WHERE %s >= "%s" AND %s>=%s' \
                       % (table, cmp_field, cmp_value, cmp_field_second, cmp_value_second)
-                self.__db_cursor.execute(sql)
-                data = self.__db_cursor.fetchone()
+                self._db_cursor.execute(sql)
+                data = self._db_cursor.fetchone()
             else:
                 del data['count']
             return data
         except Exception:
             raise
-        finally:
-            self.close()
 
     @retry(stop_max_attempt_number = config.retry_db,
            stop_max_delay=config.timeout_db*1000,
@@ -62,28 +72,26 @@ class DB:
             if cmp_field_second and cmp_value_second:
                 # double field compare
                 sql = 'SELECT * FROM %s WHERE %s >= %s AND %s>%s ORDER BY %s DESC limit %d,%d'\
-                  % (table, cmp_field, cmp_value, cmp_field_second, cmp_value_second, cmp_field, self.__sql_cursor, num)
+                  % (table, cmp_field, cmp_value, cmp_field_second, cmp_value_second, cmp_field, self._sql_cursor, num)
             else:
                 sql = 'SELECT * FROM %s WHERE %s > %sORDER BY %s DESC limit %d,%d' \
-                      % (table, cmp_field, cmp_value, cmp_field, self.__sql_cursor, num)
+                      % (table, cmp_field, cmp_value, cmp_field, self._sql_cursor, num)
         else:  # fetch all
-            sql = 'SELECT * FROM %s limit %d,%d' % (table, self.__sql_cursor, num)
+            sql = 'SELECT * FROM %s limit %d,%d' % (table, self._sql_cursor, num)
 
         print("# SQL:", sql)
-        self.__db_cursor.execute(sql)
-        self.__sql_cursor += num
-        self.close()
-        return self.__db_cursor.fetchall()
+        self._db_cursor.execute(sql)
+        self._sql_cursor += num
+        return self._db_cursor.fetchall()
 
     # get table fields
-    def get_fields(self,table_name):
-        self.__db_cursor.execute("select * from "+table_name+" limit 1")
-        fields = self.__db_cursor.fetchone()
-        # return ['SEQ','CTIME']
+    def get_table_fields(self, table_name):
+        self._db_cursor.execute("select * from " + table_name + " limit 1")
+        fields = self._db_cursor.fetchone()
         return [key for key in fields]
 
     #  create trigger_log detail
-    def create_deatil(self,table_name,event_type,unique_field):
+    def create_trigger_deatil(self, table_name, event_type, unique_field):
         old_new = "new" if event_type == "insert" else "old"
         strs = []
         strs.append("{")
@@ -105,13 +113,13 @@ class DB:
         '''
         sql = sql.format(event_type=event_type,
                    table_name=table_name,
-                   detail=self.create_deatil(table_name,event_type, unique_field)
+                   detail=self.create_trigger_deatil(table_name, event_type, unique_field)
                    )
         try:
-            self.__db_cursor.execute(sql)
+            self._db_cursor.execute(sql)
         except Exception as e:
             log.log_error(str(e))
-        # return self.__db_cursor.DatabaseError()
+        # return self._db_cursor.DatabaseError()
 
     def create_trigger_all(self):
         sql = '''
@@ -123,7 +131,7 @@ class DB:
             detail text
             );'''
         try:
-            self.__db_cursor.execute(sql)
+            self._db_cursor.execute(sql)
         except Exception as e:
             log.log_error(str(e))
 
@@ -136,7 +144,7 @@ class DB:
 
             if 'unique_field' in conf_table['trigger'] or not conf_table['trigger']['unique_field']:
                 unique_field = conf_table['trigger']['unique_field']
-            fields = unique_field if unique_field else self.get_fields(table)
+            fields = unique_field if unique_field else self.get_table_fields(table)
 
             print("field: ", fields)
             for e in event_type:
@@ -156,13 +164,14 @@ class DB:
         else:
             sql = "select * from trigger_log where table_name='%s' limit %d" % (table_name, num)
         print("# SQL:", sql)
-        self.__db_cursor.execute(sql)
-        res = self.__db_cursor.fetchall()
+        self._db_cursor.execute(sql)
+        res = self._db_cursor.fetchall()
         if res:
             if pop:
                 for row in res:
                     sql = "delete from trigger_log where id=" + str(row['id'])
-                    self.__db_cursor.execute(sql)
+                    self._db_cursor.execute(sql)
             return res
         else:
             return None
+

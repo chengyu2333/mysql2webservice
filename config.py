@@ -42,7 +42,7 @@ tables = {
         "cmp_arg_second": "seq",
         # 通过mysql触发器精准同步数据
         "trigger": {
-            "event_type": ("insert","update","delete"),
+            "event_type": ("insert","update","deleteh"),
             # trigger要记录的字段，为空则记录全部字段
             "unique_field": [
                 # "CTIME"

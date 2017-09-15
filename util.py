@@ -1,14 +1,19 @@
 from database import DB
-from req import get_options
+from req import GetReq
 import config
 
-db = DB()
+db = DB(host=config.db['host'],
+        port=config.db['port'],
+        user=config.db['user'],
+        password=config.db['password'],
+        db_name=config.db['db_name'])
 
 
 def check_config_map(table_name):
     strict = config.tables[table_name]['strict']
     lower = config.tables[table_name]['lower']
     table_map = config.tables[table_name]['map']
+    get_url = config.tables[table_name]['get_url']
     fields_conf = []
     for m in table_map:
         if isinstance(m,str):
@@ -20,8 +25,8 @@ def check_config_map(table_name):
             else:
                 fields_conf.append(m)
 
-    fields_db = db.get_fields(table_name)
-    options = get_options(table_name)
+    fields_db = db.get_table_fields(table_name)
+    options = GetReq.get_options(get_url)
     if lower:
         fields_db = map(lambda s:s.lower(), fields_db)
         fields_conf = map(lambda  s:s.lower(), fields_conf)

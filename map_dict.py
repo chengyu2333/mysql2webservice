@@ -1,13 +1,35 @@
+class MappingDict:
+    def __init__(self,data_source=None, map_rule=None, strict=False, lower=True):
+        self.data_source = property(self.getData, self.setData)
+        self.map_rule = map_rule
+        self.strict = strict
+        self.lower = lower
+        pass
+
+    def getData(self):
+        return self.data_source
+
+    def setData(self, data):
+        self.data_source = data
+
+    def mapping(self, data_source):
+        pass
+
+md = MappingDict()
+md.setData(123)
+print(md.getData())
+
+
 # map dict list
 def map_dict(data_source, map_rule, strict=False, lower=True):
     '''
     # for example:
     # data_source:
-        [{'ID': 123, 'USER': 'chengyu'},{'ID': 001, 'USER': 'user'}]
+        [{'ID': 123, 'USER': 'chengyu'},{'ID': 001, 'USER': '_user'}]
     # map_rule:
         {'ID':'uid','USER':'username'}
     # result:
-        [{'uid': 123, 'username': 'chengyu'},{'ID': 001, 'username': 'user'}]
+        [{'uid': 123, 'username': 'chengyu'},{'ID': 001, 'username': '_user'}]
     '''
     total = 0
     data_result = []

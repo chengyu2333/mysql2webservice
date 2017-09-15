@@ -10,8 +10,8 @@ def run():
     while True:
         start_time = time.time()
 
-        process.sync_api()
-        # process.sync_trigger()
+        process.sync_by_api()
+        # process.sync_by_trigger()
 
         # 保证固定周期时间
         end_time = time.time()
@@ -21,4 +21,5 @@ def run():
         print('waiting…… %ds' % sleep_time)
         time.sleep(sleep_time)
 
-run()
+if __name__ == "__main__":
+    run()
